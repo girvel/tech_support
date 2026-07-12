@@ -28,9 +28,12 @@ void read_cli(int argc, char **argv)
 
 typedef Da(const char *) Strings;
 
-bool compile_schedule(const char *source_path, Strings *outputs)
+bool attempt_compilation(Nob_Walk_Entry entry)
 {
-    String_View sv = sv_from_cstr(source_path);
+    Strings *outputs = entry.data;
+
+    String_View sv = sv_from_cstr(entry.path);
+    if (!sv_ends_with_cstr(sv, ".c")) return true;
     sv_chop_prefix(&sv, sv_from_cstr("src/"));
     assert(sv_chop_suffix(&sv, sv_from_cstr(".c")) && "Source should end with \".c\"");
 
@@ -41,7 +44,7 @@ bool compile_schedule(const char *source_path, Strings *outputs)
     da_append(outputs, obj_file);
 
     nob_cc(&cmd);
-    nob_cc_inputs(&cmd, source_path);
+    nob_cc_inputs(&cmd, entry.path);
     nob_cc_output(&cmd, obj_file);
     cmd_append(&cmd, "-c");
     nob_cc_flags(&cmd);
@@ -89,10 +92,7 @@ int main(int argc, char **argv)
     if (!mkdir_if_not_exists(".build")) return 1;
 
     Strings obj_files = {0};
-    compile_schedule("src/main.c", &obj_files);
-    compile_schedule("src/ecs.c", &obj_files);
-    compile_schedule("src/display.c", &obj_files);
-    compile_schedule("src/terminal.c", &obj_files);
+    if (!walk_dir("src", &attempt_compilation, .data = &obj_files)) return 1;
     compile_schedule_stb_ds(&obj_files);
     if (!procs_flush(&procs)) return 1;
     
