@@ -1,6 +1,5 @@
 #include "display.h"
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 #include <utils.h>
 #include <stb_ds.h>
@@ -16,7 +15,7 @@ typedef enum {
 } Mode;
 
 static Target *targets = NULL;
-static Mode mode = MODE_GAME;
+static Mode mode = MODE_TERMINAL;
 
 static const int scale = 4;
 static const int cell_size = 16;
@@ -69,6 +68,12 @@ static int font_size = 24;
 static Font jbmono;
 static Grid terminal;
 static int cursor_x = 0, cursor_y = 0;
+static char *current_command = NULL;
+
+static void prompt()
+{
+    terminal_write("> ", GREEN);
+}
 
 static void terminal_update()
 {
@@ -79,6 +84,23 @@ static void terminal_update()
             Cell *cell = grid_at(&terminal, w, h);
             char text[2] = {cell->ch, 0};
             DrawTextEx(jbmono, text, pos, font_size, 1, cell->color);
+        }
+    }
+
+    if (IsKeyPressed(KEY_ENTER)) {
+        arrput(current_command, '\0');
+        terminal_write("\n", WHITE);
+        terminal_write(current_command, WHITE);
+        terminal_write("\n\n", WHITE);
+        prompt();
+    }
+
+    int key;
+    while ((key = GetCharPressed())) {
+        if (key < 256) {
+            char buf[2] = {key, 0};
+            terminal_write(buf, WHITE);
+            arrput(current_command, key);
         }
     }
 }
@@ -131,6 +153,9 @@ void display_init()
         cell->ch = ' ';
         cell->color = BLACK;
     }
+
+    terminal_write("Hello, world! Welcome to the terminal emulator\n\n", WHITE);
+    prompt();
 }
 
 void display_update()

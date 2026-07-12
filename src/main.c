@@ -15,15 +15,6 @@ int main()
 
     display_init();
 
-    terminal_write("Hello, world! Welcome to the terminal emulator\n\n", WHITE);
-
-    for (int _ = 0; _ < 8; _++) {
-        terminal_write("girvel", RED);
-        terminal_write("@asgard % ", WHITE);
-        terminal_write("echo ", GREEN);
-        terminal_write("123\n123\n\n", WHITE);
-    }
-
     Entity player = {0};
     ecs_texture(&player, LoadTexture("assets/sprites/humanoid.png"));
     ecs_position(&player, 2, 3);
