@@ -1,6 +1,8 @@
 #include "terminal.h"
-#include "utils.h"
+#include <utils.h>
 #include <stb_ds.h>
+#include <programs/sleep.h>
+#include <program.h>
 
 typedef struct {
     Color color;
@@ -26,7 +28,7 @@ static char *current_command = NULL;
 
 static void prompt()
 {
-    terminal_write("> ", GREEN);
+    terminal_write("\n> ", GREEN);
 }
 
 void terminal_init()
@@ -41,9 +43,16 @@ void terminal_init()
         cell->color = BLACK;
     }
 
-    terminal_write("Hello, world! Welcome to the terminal emulator\n\n", WHITE);
+    terminal_write("Hello, world! Welcome to the terminal emulator\n", WHITE);
     prompt();
 }
+
+Program programs[] = {  // TODO hashmap
+    {.name = "sleep", .init = sleep_init, .update = sleep_update},
+};
+
+Program *current_program = NULL;
+void *current_payload = NULL;
 
 void terminal_update()
 {
@@ -55,6 +64,15 @@ void terminal_update()
             char text[2] = {cell->ch, 0};
             DrawTextEx(jbmono, text, pos, font_size, 1, cell->color);
         }
+    }
+
+    if (current_program != NULL) {
+        ProgramStatus status = current_program->update(current_payload);
+        if (status == PROGRAM_EXIT) {
+            current_program = NULL;
+            prompt();
+        }
+        return;
     }
 
     if (IsKeyPressed(KEY_ENTER)) {
@@ -77,18 +95,23 @@ void terminal_update()
             }
             was_space_before = is_space;
         }
+        current_command = NULL;  // TODO free argv
 
-        foreach (arg, argv) {
-            terminal_write(*arg, WHITE);
-            terminal_write("\n", WHITE);
+        forarr (pr, programs) {
+            if (strcmp(pr->name, argv[0]) == 0) {
+                current_program = pr;
+                current_payload = pr->init(arrlen(argv), argv);
+                return;
+            }
         }
 
-        terminal_write("\n", WHITE);
-        current_command = NULL;  // TODO free argv
+        terminal_write("Not found!\n", RED);
         prompt();
     }
 
-    if (IsKeyPressed(KEY_BACKSPACE) && arrlen(current_command) > 0) {
+    if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE))
+        && arrlen(current_command) > 0
+    ) {
         arrpop(current_command);
         terminal_write("\b", WHITE);
     }

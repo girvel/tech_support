@@ -30,17 +30,27 @@ typedef Da(const char *) Strings;
 
 bool attempt_compilation(Nob_Walk_Entry entry)
 {
-    Strings *outputs = entry.data;
-
     String_View sv = sv_from_cstr(entry.path);
-    if (!sv_ends_with_cstr(sv, ".c")) return true;
     sv_chop_prefix(&sv, sv_from_cstr("src/"));
+    if (entry.type == NOB_FILE_DIRECTORY) {
+        String_Builder sb = {0};
+        sb_append_cstr(&sb, ".build/");
+        sb_append_sv(&sb, sv);
+        sb_append_null(&sb);
+        nob_mkdir_if_not_exists(sb.items);
+        free(sb.items);
+        return true;
+    }
+    if (!sv_ends_with_cstr(sv, ".c")) return true;
+
     assert(sv_chop_suffix(&sv, sv_from_cstr(".c")) && "Source should end with \".c\"");
 
     String_Builder sb = {0};
     sb_appendf(&sb, ".build/"SV_Fmt".o", SV_Arg(sv));
     sb_append_null(&sb);
     char *obj_file = sb.items;
+
+    Strings *outputs = entry.data;
     da_append(outputs, obj_file);
 
     nob_cc(&cmd);
