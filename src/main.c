@@ -1,14 +1,8 @@
 #include <raylib.h>
-#define STB_DS_IMPLEMENTATION
 #include <stb_ds.h>
-#define foreach(VARNAME, COLLECTION) \
-    for (__typeof__(COLLECTION) _foreach_collection = COLLECTION, VARNAME = _foreach_collection; \
-         VARNAME < _foreach_collection + arrlen(_foreach_collection); \
-         VARNAME++)
 #include <ecs.h>
 
 // TODO:
-// - foreach -> stb_ds
 // - display.c, two modes, scaling
 
 int main()

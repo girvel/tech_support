@@ -26,7 +26,7 @@ void read_cli(int argc, char **argv)
     }
 }
 
-typedef Da(char *) Strings;
+typedef Da(const char *) Strings;
 
 bool compile_schedule(const char *source_path, Strings *outputs)
 {
@@ -53,10 +53,27 @@ bool compile_schedule(const char *source_path, Strings *outputs)
     return cmd_run(&cmd, .async = &procs);
 }
 
+bool compile_schedule_stb_ds(Strings *outputs)
+{
+    const char *obj_file = ".build/stb_ds.o";
+    da_append(outputs, obj_file);
+
+    nob_cc(&cmd);
+    cmd_append(&cmd, "-c", "-x", "c", "-DSTB_DS_IMPLEMENTATION");
+    nob_cc_inputs(&cmd, "lib/stb_ds.h");
+    nob_cc_output(&cmd, obj_file);
+    nob_cc_flags(&cmd);
+    if (cli.debug) {
+        cmd_append(&cmd, "-ggdb");
+    }
+
+    return cmd_run(&cmd, .async = &procs);
+}
+
 bool link_files(Strings obj_files)
 {
     nob_cc(&cmd);
-    da_foreach(char *, obj_file, &obj_files) {
+    da_foreach(const char *, obj_file, &obj_files) {
         nob_cc_inputs(&cmd, *obj_file);
     }
     nob_cc_output(&cmd, "tech_support");
@@ -74,6 +91,7 @@ int main(int argc, char **argv)
     Strings obj_files = {0};
     compile_schedule("src/main.c", &obj_files);
     compile_schedule("src/ecs.c", &obj_files);
+    compile_schedule_stb_ds(&obj_files);
     if (!procs_flush(&procs)) return 1;
     
     if (!link_files(obj_files)) return 1;

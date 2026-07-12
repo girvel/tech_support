@@ -721,6 +721,12 @@ template<class T> static T * stbds_shmode_func_wrapper(T *, size_t elemsize, int
 #define stbds_shmode_func_wrapper(t,e,m)  stbds_shmode_func(e,m)
 #endif
 
+// Extension
+#define foreach(VARNAME, COLLECTION) \
+    for (__typeof__(COLLECTION) _foreach_collection = COLLECTION, VARNAME = _foreach_collection; \
+         VARNAME < _foreach_collection + arrlen(_foreach_collection); \
+         VARNAME++)
+
 #endif // INCLUDE_STB_DS_H
 
 
