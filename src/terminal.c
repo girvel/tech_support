@@ -1,5 +1,8 @@
 #include "terminal.h"
+#include "display.h"
 #include "programs/exit.h"
+#include "programs/shell.h"
+#include <stdio.h>
 #include <utils.h>
 #include <stb_ds.h>
 #include <programs/sleep.h>
@@ -25,11 +28,34 @@ static int font_size = 24;
 static Font jbmono;
 static Grid terminal;
 static int cursor_x = 0, cursor_y = 0;
-static char *current_command = NULL;
 
-static void prompt()
+static Program programs[] = {  // TODO hashmap
+    {.name = "shell", .init = shell_init, .update = shell_update},
+    {.name = "sleep", .init = sleep_init, .update = sleep_update},
+    {.name = "exit", .init = exit_init, .update = exit_update},
+};
+
+typedef struct {
+    Program pr;
+    void *payload;
+} Process;
+
+static Process *process_stack = NULL;
+
+bool terminal_execute(int argc, char **argv)
 {
-    terminal_write("\n> ", GREEN);
+    forarr (pr, programs) {
+        if (strcmp(pr->name, argv[0]) == 0) {
+            Process pc = {
+                .pr = *pr,
+                .payload = pr->init(argc, argv),
+            };
+            arrput(process_stack, pc);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void terminal_init()
@@ -44,17 +70,9 @@ void terminal_init()
         cell->color = BLACK;
     }
 
-    terminal_write("Hello, world! Welcome to the terminal emulator\n", WHITE);
-    prompt();
+    char *argv[] = {"shell"};
+    terminal_execute(size(argv), argv);
 }
-
-Program programs[] = {  // TODO hashmap
-    {.name = "sleep", .init = sleep_init, .update = sleep_update},
-    {.name = "exit", .init = exit_init, .update = exit_update},
-};
-
-Program *current_program = NULL;
-void *current_payload = NULL;
 
 void terminal_update()
 {
@@ -68,63 +86,11 @@ void terminal_update()
         }
     }
 
-    if (current_program != NULL) {
-        ProgramStatus status = current_program->update(current_payload);
-        if (status == PROGRAM_EXIT) {
-            current_program = NULL;
-            prompt();
-        }
-        return;
-    }
-
-    if (IsKeyPressed(KEY_ENTER)) {
-        arrput(current_command, '\0');
-        terminal_write("\n", WHITE);
-
-        char **argv = NULL;
-        arrput(argv, current_command);
-
-        bool was_space_before = true;
-        foreach (ch, current_command) {
-            bool is_space = *ch == ' ';
-            if (is_space) {
-                *ch = '\0';
-                if (was_space_before) {
-                    argv[arrlen(argv) - 1] = ch + 1;
-                } else {
-                    arrput(argv, ch + 1);
-                }
-            }
-            was_space_before = is_space;
-        }
-        current_command = NULL;  // TODO free argv
-
-        forarr (pr, programs) {
-            if (strcmp(pr->name, argv[0]) == 0) {
-                current_program = pr;
-                current_payload = pr->init(arrlen(argv), argv);
-                return;
-            }
-        }
-
-        terminal_write("Not found!\n", RED);
-        prompt();
-    }
-
-    if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE))
-        && arrlen(current_command) > 0
-    ) {
-        arrpop(current_command);
-        terminal_write("\b", WHITE);
-    }
-
-    int key;
-    while ((key = GetCharPressed())) {
-        if (key < 256) {
-            char buf[2] = {key, 0};
-            terminal_write(buf, WHITE);
-            arrput(current_command, key);
-        }
+    Process current_pc = process_stack[arrlen(process_stack) - 1];
+    ProgramStatus status = current_pc.pr.update(current_pc.payload);
+    if (status == PROGRAM_EXIT) {  // TODO _deinit to free used resources? free payload?
+        (void)arrpop(process_stack);
+        if (arrlen(process_stack) == 0) display_mode = MODE_GAME;
     }
 }
 
