@@ -348,6 +348,8 @@ NOBDEF void nob_dir_entry_close(Nob_Dir_Entry dir);
 #define NOB_DECLTYPE_CAST(T)
 #endif // __cplusplus
 
+#define Da(T) struct { T *items; size_t count, capacity; }
+
 #define nob_da_reserve(da, expected_capacity)                                              \
     do {                                                                                   \
         if ((expected_capacity) > (da)->capacity) {                                        \

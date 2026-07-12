@@ -4,49 +4,84 @@
 #include "lib/flag.h"
 
 Nob_Cmd cmd = {0};
+Procs procs = {0};
+
+struct {
+    bool run, debug;
+} cli = {0};
+
+void read_cli(int argc, char **argv)
+{
+    flag_bool_var(&cli.run, "run", false, "Run the program after compilation.");
+    flag_bool_var(&cli.debug, "debug", false, "Run the program with GDB after compilation.");
+
+    if (!flag_parse(argc, argv)) {
+        flag_print_error(stderr);
+        exit(1);
+    }
+
+    if (cli.run && cli.debug) {
+        fprintf(stderr, "Both -run and -debug provided\n");
+        exit(1);
+    }
+}
+
+typedef Da(char *) Strings;
+
+bool compile_schedule(const char *source_path, Strings *outputs)
+{
+    String_View sv = sv_from_cstr(source_path);
+    sv_chop_prefix(&sv, sv_from_cstr("src/"));
+    assert(sv_chop_suffix(&sv, sv_from_cstr(".c")) && "Source should end with \".c\"");
+
+    String_Builder sb = {0};
+    sb_appendf(&sb, ".build/"SV_Fmt".o", SV_Arg(sv));
+    sb_append_null(&sb);
+    char *obj_file = sb.items;
+    da_append(outputs, obj_file);
+
+    nob_cc(&cmd);
+    nob_cc_inputs(&cmd, source_path);
+    nob_cc_output(&cmd, obj_file);
+    cmd_append(&cmd, "-c");
+    nob_cc_flags(&cmd);
+    cmd_append(&cmd, "-I./lib/", "-I./src/");
+    if (cli.debug) {
+        cmd_append(&cmd, "-ggdb");
+    }
+
+    return cmd_run(&cmd, .async = &procs);
+}
+
+bool link_files(Strings obj_files)
+{
+    nob_cc(&cmd);
+    da_foreach(char *, obj_file, &obj_files) {
+        nob_cc_inputs(&cmd, *obj_file);
+    }
+    nob_cc_output(&cmd, "tech_support");
+    cmd_append(&cmd, "-L./lib/", "-l:libraylib.a", "-lGL", "-lm", "-lpthread", "-ldl", "-lX11");
+    return nob_cmd_run(&cmd);
+}
 
 int main(int argc, char **argv)
 {
     GO_REBUILD_URSELF(argc, argv);
-
-    bool run = false;
-    flag_bool_var(&run, "run", false, "Run the program after compilation.");
-    bool debug = false;
-    flag_bool_var(&debug, "debug", false, "Run the program with GDB after compilation.");
-
-    if (!flag_parse(argc, argv)) {
-        flag_print_error(stderr);
-        return 1;
-    }
-
-    if (run && debug) {
-        fprintf(stderr, "Both -run and -debug provided\n");
-        return 1;
-    }
+    read_cli(argc, argv);
 
     if (!mkdir_if_not_exists(".build")) return 1;
 
-    nob_cc(&cmd);
-    cmd_append(&cmd, "-c");
-    nob_cc_inputs(&cmd, "src/main.c");
-    nob_cc_output(&cmd, ".build/main.o");
-    nob_cc_flags(&cmd);
-    cmd_append(&cmd, "-I./lib/", "-I./src/");
-    if (debug) {
-        cmd_append(&cmd, "-ggdb");
-    }
-    if (!nob_cmd_run(&cmd)) return 1;
+    Strings obj_files = {0};
+    compile_schedule("src/main.c", &obj_files);
+    compile_schedule("src/ecs.c", &obj_files);
+    if (!procs_flush(&procs)) return 1;
+    
+    if (!link_files(obj_files)) return 1;
 
-    nob_cc(&cmd);
-    nob_cc_inputs(&cmd, ".build/main.o");
-    nob_cc_output(&cmd, "tech_support");
-    cmd_append(&cmd, "-L./lib/", "-l:libraylib.a", "-lGL", "-lm", "-lpthread", "-ldl", "-lX11");
-    if (!nob_cmd_run(&cmd)) return 1;
-
-    if (run) {
+    if (cli.run) {
         cmd_append(&cmd, "./tech_support");
         if (!cmd_run(&cmd)) return 1;
-    } else if (debug) {
+    } else if (cli.debug) {
         cmd_append(&cmd, "gdb", "-ex", "run", "--args", "./tech_support");
         if (!cmd_run(&cmd)) return 1;
     }

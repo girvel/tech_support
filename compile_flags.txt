@@ -2,3 +2,4 @@
 -Wextra
 -I./lib
 -I./src
+-xc
