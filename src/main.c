@@ -3,9 +3,16 @@
 #include <ecs.h>
 #include <display.h>
 
+// TODO:
+// - movement
+// - collisions
+// - terminal emulator
+
 int main()
 {
     InitWindow(400, 400, "Tech Support");
+
+    display_init();
 
     Entity e = {0};
     ecs_texture(&e, LoadTexture("assets/sprites/humanoid.png"));
