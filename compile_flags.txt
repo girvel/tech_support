@@ -1,3 +1,4 @@
 -Wall
 -Wextra
 -I./lib
+-I./src
