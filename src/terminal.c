@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "programs/exit.h"
 #include <utils.h>
 #include <stb_ds.h>
 #include <programs/sleep.h>
@@ -49,6 +50,7 @@ void terminal_init()
 
 Program programs[] = {  // TODO hashmap
     {.name = "sleep", .init = sleep_init, .update = sleep_update},
+    {.name = "exit", .init = exit_init, .update = exit_update},
 };
 
 Program *current_program = NULL;

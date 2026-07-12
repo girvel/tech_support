@@ -1,22 +1,17 @@
 #include "display.h"
 #include "terminal.h"
 #include <math.h>
-#include <string.h>
 #include <utils.h>
 #include <stb_ds.h>
+
+Mode display_mode = MODE_TERMINAL;
 
 typedef struct {
     Vector2 *position;
     Texture *texture;
 } Target;
 
-typedef enum {
-    MODE_GAME,
-    MODE_TERMINAL,
-} Mode;
-
 static Target *targets = NULL;
-static Mode mode = MODE_TERMINAL;
 
 static const int scale = 4;
 static const int cell_size = 16;
@@ -33,7 +28,7 @@ static void game_update()
     }
 
     if (game_player.position) {
-        const float speed = 3. * GetFrameTime();
+        const float speed = 5. * GetFrameTime();
         Vector2 delta = {
             (IsKeyDown(KEY_D) - IsKeyDown(KEY_A)) * speed,
             (IsKeyDown(KEY_S) - IsKeyDown(KEY_W)) * speed,
@@ -58,7 +53,7 @@ void display_update()
 {
     ClearBackground(BLACK);
 
-    switch (mode) {
+    switch (display_mode) {
     case MODE_GAME: return game_update();
     case MODE_TERMINAL: return terminal_update();
     }
