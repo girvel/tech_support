@@ -62,7 +62,13 @@ void terminal_update()
         terminal_write("\n", WHITE);
         terminal_write(current_command, WHITE);
         terminal_write("\n\n", WHITE);
+        arrsetlen(current_command, 0);
         prompt();
+    }
+
+    if (IsKeyPressed(KEY_BACKSPACE) && arrlen(current_command) > 0) {
+        arrpop(current_command);
+        terminal_write("\b", WHITE);
     }
 
     int key;
@@ -78,13 +84,25 @@ void terminal_update()
 void terminal_write(const char *str, Color color)
 {
     forchar (ch, str) {
+        Cell *cell = grid_at(&terminal, cursor_x, cursor_y);
         switch (*ch) {
         case '\n':
             cursor_y++;
             cursor_x = 0;
             break;
-        default: {
-            Cell *cell = grid_at(&terminal, cursor_x, cursor_y);
+        case '\b':
+            (cell - 1)->ch = ' ';
+            cursor_x--;
+            if (cursor_x < 0) {
+                if (cursor_y > 0) {
+                    cursor_x = terminal.w - 1;
+                    cursor_y--;
+                } else {
+                    cursor_x = 0;
+                }
+            }
+            break;
+        default:
             cell->ch = *ch;
             cell->color = color;
             cursor_x++;
@@ -92,7 +110,6 @@ void terminal_write(const char *str, Color color)
                 cursor_x = 0;
                 cursor_y++;
             }
-        }
         }
 
         if (cursor_y >= terminal.h) {
