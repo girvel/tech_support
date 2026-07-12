@@ -9,5 +9,5 @@ typedef struct {
 void ecs_texture(Entity *e, Texture tex);
 void ecs_position(Entity *e, float x, float y);
 void ecs_positionv(Entity *e, Vector2 pos);
-void ecs_add(Entity *e);
+void ecs_add(const Entity *e);
 Entity *ecs_entities();

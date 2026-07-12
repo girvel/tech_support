@@ -11,6 +11,7 @@
 int main()
 {
     InitWindow(1280, 720, "Tech Support");
+    SetTargetFPS(60);
 
     display_init();
 
@@ -23,14 +24,14 @@ int main()
         terminal_write("123\n123\n\n", WHITE);
     }
 
-    Entity e = {0};
-    ecs_texture(&e, LoadTexture("assets/sprites/humanoid.png"));
-    ecs_position(&e, 2, 3);
-    ecs_add(&e);
+    Entity player = {0};
+    ecs_texture(&player, LoadTexture("assets/sprites/humanoid.png"));
+    ecs_position(&player, 2, 3);
+    ecs_add(&player);
+    game_player = player;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-            ClearBackground(BLACK);
             display_update();
         EndDrawing();
     }

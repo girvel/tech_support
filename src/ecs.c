@@ -26,11 +26,10 @@ void ecs_positionv(Entity *e, Vector2 pos)
     *e->position = pos;
 }
 
-void ecs_add(Entity *e)
+void ecs_add(const Entity *e)
 {
     arrput(all_entities, *e);
     display_register(e);
-    *e = (Entity) {0};
 }
 
 Entity *ecs_entities()
