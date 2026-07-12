@@ -1,9 +1,7 @@
 #include <raylib.h>
 #include <stb_ds.h>
 #include <ecs.h>
-
-// TODO:
-// - display.c, two modes, scaling
+#include <display.h>
 
 int main()
 {
@@ -17,11 +15,7 @@ int main()
     while (!WindowShouldClose()) {
         BeginDrawing();
             ClearBackground(BLACK);
-            foreach (e, ecs_entities()) {
-                if (e->position && e->texture) {
-                    DrawTextureEx(*e->texture, *e->position, 0, 1, WHITE);
-                }
-            }
+            display_update();
         EndDrawing();
     }
     CloseWindow();

@@ -1,4 +1,5 @@
 #include "ecs.h"
+#include "display.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stb_ds.h>
@@ -28,6 +29,7 @@ void ecs_positionv(Entity *e, Vector2 pos)
 void ecs_add(Entity *e)
 {
     arrput(all_entities, *e);
+    display_register(e);
     *e = (Entity) {0};
 }
 
