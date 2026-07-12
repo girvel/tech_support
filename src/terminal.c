@@ -60,9 +60,31 @@ void terminal_update()
     if (IsKeyPressed(KEY_ENTER)) {
         arrput(current_command, '\0');
         terminal_write("\n", WHITE);
-        terminal_write(current_command, WHITE);
-        terminal_write("\n\n", WHITE);
-        arrsetlen(current_command, 0);
+
+        char **argv = NULL;
+        arrput(argv, current_command);
+
+        bool was_space_before = true;
+        foreach (ch, current_command) {
+            bool is_space = *ch == ' ';
+            if (is_space) {
+                *ch = '\0';
+                if (was_space_before) {
+                    argv[arrlen(argv) - 1] = ch + 1;
+                } else {
+                    arrput(argv, ch + 1);
+                }
+            }
+            was_space_before = is_space;
+        }
+
+        foreach (arg, argv) {
+            terminal_write(*arg, WHITE);
+            terminal_write("\n", WHITE);
+        }
+
+        terminal_write("\n", WHITE);
+        current_command = NULL;  // TODO free argv
         prompt();
     }
 
