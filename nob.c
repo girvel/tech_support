@@ -92,6 +92,7 @@ int main(int argc, char **argv)
     compile_schedule("src/main.c", &obj_files);
     compile_schedule("src/ecs.c", &obj_files);
     compile_schedule("src/display.c", &obj_files);
+    compile_schedule("src/terminal.c", &obj_files);
     compile_schedule_stb_ds(&obj_files);
     if (!procs_flush(&procs)) return 1;
     
