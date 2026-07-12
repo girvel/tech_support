@@ -1,4 +1,6 @@
 #include "display.h"
+#include <string.h>
+#include <utils.h>
 #include <stb_ds.h>
 
 typedef struct {
@@ -28,18 +30,25 @@ static void game_update()
 }
 
 typedef struct {
-    char *field;
+    Color color;
+    char ch;
+} Cell;
+
+typedef struct {
+    Cell *field;
     int w, h;
 } Grid;
 
-static char *grid_at(Grid *grid, int x, int y)
+static Cell *grid_at(Grid *grid, int x, int y)
 {
+    if (x < 0 || y < 0 || x >= grid->w || y >= grid->h) return NULL;
     return grid->field + x + y * grid->w;
 }
 
 static int font_size = 24;
 static Font jbmono;
 static Grid terminal;
+static int cursor_x = 0, cursor_y = 0;
 
 static void terminal_update()
 {
@@ -47,25 +56,61 @@ static void terminal_update()
     for (int h = 0; h < terminal.h; h++) {
         for (int w = 0; w < terminal.w; w++) {
             Vector2 pos = {w * ch.x, h * ch.y};
-            char text[2] = {*grid_at(&terminal, w, h), 0};
-            DrawTextEx(jbmono, text, pos, font_size, 1, WHITE);
+            Cell *cell = grid_at(&terminal, w, h);
+            char text[2] = {cell->ch, 0};
+            DrawTextEx(jbmono, text, pos, font_size, 1, cell->color);
+        }
+    }
+}
+
+void terminal_write(const char *str, Color color)
+{
+    forchar (ch, str) {
+        switch (*ch) {
+        case '\n':
+            cursor_y++;
+            cursor_x = 0;
+            break;
+        default: {
+            Cell *cell = grid_at(&terminal, cursor_x, cursor_y);
+            cell->ch = *ch;
+            cell->color = color;
+            cursor_x++;
+            if (cursor_x >= terminal.w) {
+                cursor_x = 0;
+                cursor_y++;
+            }
+        }
+        }
+
+        if (cursor_y >= terminal.h) {
+            memmove(terminal.field,
+                    terminal.field + terminal.w,
+                    terminal.w * (terminal.h - 1) * sizeof(Cell));
+
+            for (Cell *cell = terminal.field + terminal.w * (terminal.h - 1);
+                 cell < terminal.field + terminal.w * terminal.h;
+                 cell++) {
+                cell->ch = ' ';
+                cell->color = WHITE;
+            }
+
+            cursor_y--;
         }
     }
 }
 
 void display_init()
 {
-    terminal.w = 80;
-    terminal.h = 25;
-    terminal.field = malloc((terminal.w * terminal.h) * sizeof(char));
     jbmono = LoadFontEx("assets/fonts/jbmono.ttf", font_size, NULL, 0);
 
-    for (int h = 0; h < terminal.h; h++) {
-        for (int w = 0; w < terminal.w; w++) {
-            *grid_at(&terminal, w, h) = ' ';
-        }
+    terminal.w = 80;
+    terminal.h = 25;
+    terminal.field = malloc((terminal.w * terminal.h) * sizeof(Cell));
+    for (Cell *cell = terminal.field; cell < terminal.field + terminal.w * terminal.h; cell++) {
+        cell->ch = ' ';
+        cell->color = BLACK;
     }
-    *grid_at(&terminal, 1, 0) = '>';
 }
 
 void display_update()
