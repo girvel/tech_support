@@ -18,7 +18,7 @@ int main()
 
     Image humanoid = LoadImage("assets/sprites/humanoid.png");
     Entity player = {
-        .sprite = spritei(&humanoid),
+        .sprite = spritea(humanoid, NULL) + 1,
         .position = position(2, 3),
     };
     ecs_add(&player);

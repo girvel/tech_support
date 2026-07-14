@@ -7,8 +7,9 @@
          VARNAME < _foreach_collection + arrlen(_foreach_collection); \
          VARNAME++)
 
+// __typeof__((COLLECTION + SIZE)) covers the case of int COLLECTION & size_t SIZE
 #define forn(VARNAME, COLLECTION, SIZE) \
-    for (__typeof__((COLLECTION)) _forn_collection = COLLECTION, VARNAME = _forn_collection; \
+    for (__typeof__((COLLECTION + SIZE)) _forn_collection = COLLECTION, VARNAME = _forn_collection; \
          VARNAME < _forn_collection + SIZE; \
          VARNAME++)
 

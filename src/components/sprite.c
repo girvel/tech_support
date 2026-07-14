@@ -14,20 +14,9 @@ const Color anchor_colors[ANCHOR_N] = {
     [ANCHOR_RIGHT_POCKET] = rgb(0xef0000),
 };
 
-static void print_color(Color c)
+static inline void sprite_read(Sprite *result, Image *img)
 {
-    printf("%d %d %d %d\n", c.r, c.g, c.b, c.a);
-}
-
-Sprite *spritei(Image *img)
-{
-    // assert(img->height == cell_size && "Sprite height should be equal to cell_size");
-    // assert(img->width % cell_size == 0 && "Sprite width should be a multiple of cell_size");
-    // size_t images_n = img->width / cell_size;
-    // if (n != NULL) *n = images_n;
-
-    Sprite *result = malloc(sizeof(Sprite));
-    for (size_t i = 0; i < ANCHOR_N; i++) result->anchors[i].x = -1;
+    forarr (anchor, result->anchors) anchor->x = -1;
 
     if (img->format != PIXELFORMAT_UNCOMPRESSED_R8G8B8A8) {
         ImageFormat(img, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -35,15 +24,18 @@ Sprite *spritei(Image *img)
 
     Color *pixels = img->data;
     Color main_color = {0};
-    for (int i = 0; i < img->width * img->height; i++) {
-        Color pixel = pixels[i];
-        if ((pixel.g == 0 && pixel.b == 0) || pixel.a == 0) continue;
-        main_color = pixel;
-        break;
+    forn (x, 0, img->width) {
+        forn (y, 0, img->height) {
+            Color pixel = pixels[y * img->width + x];
+            if ((pixel.g == 0 && pixel.b == 0) || pixel.a == 0) continue;
+            main_color = pixel;
+            goto break_out;
+        }
     }
 
-    for (int x = 0; x < img->width; x++) {
-        for (int y = 0; y < img->height; y++) {
+break_out:
+    forn (x, 0, img->width) {
+        forn (y, 0, img->height) {
             Color *pixel = &pixels[y * img->width + x];
             if (pixel->g != 0 || pixel->b != 0 || pixel->a != 255) continue;
             for (int i = 0; i < ANCHOR_N; i++) {
@@ -58,5 +50,29 @@ Sprite *spritei(Image *img)
     }
 
     result->texture = LoadTextureFromImage(*img);
+}
+
+Sprite *spritea(Image img, size_t *n)
+{
+    assert(img.height == cell_size && "Sprite height should be equal to cell_size");
+    assert(img.width % cell_size == 0 && "Sprite width should be a multiple of cell_size");
+    size_t images_n = img.width / cell_size;
+    if (n != NULL) *n = images_n;
+
+    Sprite *result = malloc(sizeof(Sprite) * images_n);
+
+    forn (i, 0, images_n) {
+        Image crop = ImageCopy(img);
+        ImageCrop(&crop, (Rectangle) {cell_size * i, 0, cell_size, cell_size});
+        sprite_read(result + i, &crop);
+    }
+
+    return result;
+}
+
+Sprite *spritei(Image *img)
+{
+    Sprite *result = malloc(sizeof(Sprite));
+    sprite_read(result, img);
     return result;
 }
