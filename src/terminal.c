@@ -24,8 +24,8 @@ static Cell *grid_at(Grid *grid, int x, int y)
     return grid->field + x + y * grid->w;
 }
 
-static int font_size = 24;
-static Font jbmono;
+static int font_size = 28;
+static Font font;
 static Grid terminal;
 static int cursor_x = 0, cursor_y = 0;
 
@@ -79,7 +79,7 @@ bool terminal_execute(int argc, char **argv)
 
 void terminal_init()
 {
-    jbmono = LoadFontEx("assets/fonts/jbmono.ttf", font_size, NULL, 0);
+    font = LoadFontEx("assets/fonts/clacon2.ttf", font_size, NULL, 0);
 
     terminal.w = 80;
     terminal.h = 25;
@@ -95,13 +95,13 @@ void terminal_init()
 
 void terminal_update()
 {
-    Vector2 ch = MeasureTextEx(jbmono, "w", font_size, 1);
+    Vector2 ch = MeasureTextEx(font, "w", font_size, 1);
     for (int h = 0; h < terminal.h; h++) {
         for (int w = 0; w < terminal.w; w++) {
             Vector2 pos = {w * ch.x, h * ch.y};
             Cell *cell = grid_at(&terminal, w, h);
             char text[2] = {cell->ch, 0};
-            DrawTextEx(jbmono, text, pos, font_size, 1, cell->color);
+            DrawTextEx(font, text, pos, font_size, 1, cell->color);
         }
     }
 
