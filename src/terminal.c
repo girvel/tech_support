@@ -38,17 +38,36 @@ static Program programs[] = {  // TODO hashmap
 typedef struct {
     Program pr;
     void *payload;
+    char **argv; // that is an stb array
+    char *argv_data;
 } Process;
 
 static Process *process_stack = NULL;
 
 bool terminal_execute(int argc, char **argv)
 {
+    size_t total_len = 0;
+    for (char **arg = argv; arg < argv + argc; arg++) {
+        total_len += strlen(*arg) + 1;
+    }
+
+    char **argv_copy = NULL;  // TODO terminal_arena + stb_hs
+    char *argv_copy_data = malloc(total_len);  // TODO terminal_arena
+
+    size_t i = 0;
+    for (char **arg = argv; arg < argv + argc; arg++) {
+        arrput(argv_copy, argv_copy_data + i);
+        strcpy(argv_copy_data + i, *arg);
+        i += strlen(*arg) + 1;
+    }
+
     forarr (pr, programs) {
         if (strcmp(pr->name, argv[0]) == 0) {
             Process pc = {
                 .pr = *pr,
-                .payload = pr->init(argc, argv),
+                .payload = pr->init(argc, argv_copy),
+                .argv = argv_copy,
+                .argv_data = argv_copy_data,
             };
             arrput(process_stack, pc);
             return true;
@@ -64,7 +83,7 @@ void terminal_init()
 
     terminal.w = 80;
     terminal.h = 25;
-    terminal.field = malloc((terminal.w * terminal.h) * sizeof(Cell));
+    terminal.field = malloc((terminal.w * terminal.h) * sizeof(Cell));  // TODO global_arena
     for (Cell *cell = terminal.field; cell < terminal.field + terminal.w * terminal.h; cell++) {
         cell->ch = ' ';
         cell->color = BLACK;
@@ -88,8 +107,11 @@ void terminal_update()
 
     Process current_pc = process_stack[arrlen(process_stack) - 1];
     ProgramStatus status = current_pc.pr.update(current_pc.payload);
-    if (status == PROGRAM_EXIT) {  // TODO _deinit to free used resources? free payload?
-        (void)arrpop(process_stack);
+    if (status == PROGRAM_EXIT) {
+        Process pc = arrpop(process_stack);
+        arrfree(pc.argv);
+        free(pc.argv_data);
+        free(pc.payload);  // TODO _deinit to free used resources + program_default_deinit
         if (arrlen(process_stack) == 0) display_mode = MODE_GAME;
     }
 }

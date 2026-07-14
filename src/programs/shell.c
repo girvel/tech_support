@@ -22,7 +22,7 @@ void *shell_init(int argc, char **argv)
     terminal_write("Hello, world! Welcome to the terminal emulator\n", WHITE);
     prompt();
 
-    ExitState *payload = malloc(sizeof(ExitState));
+    ExitState *payload = malloc(sizeof(ExitState));  // TODO terminal_arena
     payload->current_command = NULL;
     payload->executing = false;
 
@@ -59,11 +59,13 @@ ProgramStatus shell_update(void *payload)
             was_space_before = is_space;
         }
 
-        state->current_command = NULL;  // TODO free argv
-        state->executing = true;
         if (!terminal_execute(arrlen(argv), argv)) {
             terminal_write("Not found!\n", RED);
         }
+
+        state->executing = true;
+        arrsetlen(state->current_command, 0);
+        arrfree(argv);
     }
 
     if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE))
