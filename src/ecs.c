@@ -1,25 +1,25 @@
 #include "ecs.h"
-#include "display.h"
+#include <systems/display.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stb_ds.h>
 
 static Entity *all_entities = NULL;
 
-void ecs_texture(Entity *e, Texture tex)
+void texture(Entity *e, Texture tex)
 {
     assert(e->texture == NULL);
     e->texture = malloc(sizeof(Texture));
     *e->texture = tex;
 }
 
-void ecs_position(Entity *e, float x, float y)
+void position(Entity *e, float x, float y)
 {
     Vector2 pos = {x, y};
-    ecs_positionv(e, pos);
+    positionv(e, pos);
 }
 
-void ecs_positionv(Entity *e, Vector2 pos)
+void positionv(Entity *e, Vector2 pos)
 {
     assert(e->position == NULL);
     e->position = malloc(sizeof(Vector2));
@@ -32,7 +32,8 @@ void ecs_add(const Entity *e)
     display_register(e);
 }
 
-Entity *ecs_entities()
+Entity *ecs_entities(size_t *size)
 {
+    *size = arrlen(all_entities);
     return all_entities;
 }

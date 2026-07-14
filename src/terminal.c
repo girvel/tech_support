@@ -1,5 +1,5 @@
 #include "terminal.h"
-#include "display.h"
+#include <systems/display.h>
 #include "programs/exit.h"
 #include "programs/shell.h"
 #include <stdio.h>

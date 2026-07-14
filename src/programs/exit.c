@@ -1,5 +1,5 @@
 #include "exit.h"
-#include "display.h"
+#include <systems/display.h>
 #include <stdlib.h>
 
 void *exit_init(int argc, char **argv)

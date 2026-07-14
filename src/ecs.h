@@ -1,13 +1,16 @@
 #pragma once
+#include "animated.h"
 #include "raylib.h"
 
 typedef struct {
-    Texture *texture;
     Vector2 *position;
+    Texture *texture;
+    Animated *animation;
 } Entity;
 
-void ecs_texture(Entity *e, Texture tex);
-void ecs_position(Entity *e, float x, float y);
-void ecs_positionv(Entity *e, Vector2 pos);
+void texture(Entity *e, Texture tex);
+void position(Entity *e, float x, float y);
+void positionv(Entity *e, Vector2 pos);
+
 void ecs_add(const Entity *e);
-Entity *ecs_entities();
+Entity *ecs_entities(size_t *size);
