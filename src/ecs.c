@@ -6,24 +6,18 @@
 
 static Entity *all_entities = NULL;
 
-void texture(Entity *e, Texture tex)
+Vector2 *position(float x, float y)
 {
-    assert(e->texture == NULL);
-    e->texture = malloc(sizeof(Texture));
-    *e->texture = tex;
+    Vector2 *result = malloc(sizeof(Vector2));  // TODO fixed-size allocator
+    *result = (Vector2) {x, y};
+    return result;
 }
 
-void position(Entity *e, float x, float y)
+Vector2 *positionv(Vector2 pos)
 {
-    Vector2 pos = {x, y};
-    positionv(e, pos);
-}
-
-void positionv(Entity *e, Vector2 pos)
-{
-    assert(e->position == NULL);
-    e->position = malloc(sizeof(Vector2));
-    *e->position = pos;
+    Vector2 *result = malloc(sizeof(Vector2));
+    *result = pos;
+    return result;
 }
 
 void ecs_add(const Entity *e)

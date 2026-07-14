@@ -7,6 +7,11 @@
          VARNAME < _foreach_collection + arrlen(_foreach_collection); \
          VARNAME++)
 
+#define forn(VARNAME, COLLECTION, SIZE) \
+    for (__typeof__((COLLECTION)) _forn_collection = COLLECTION, VARNAME = _forn_collection; \
+         VARNAME < _forn_collection + SIZE; \
+         VARNAME++)
+
 #define forchar(VARNAME, COLLECTION) \
     for (__typeof__((COLLECTION)) VARNAME = (COLLECTION); *VARNAME; VARNAME++)
 
@@ -14,3 +19,5 @@
     for (__typeof__((*COLLECTION)) *_forarr_collection = COLLECTION, *VARNAME = _forarr_collection; \
          VARNAME < _forarr_collection + size(COLLECTION); \
          VARNAME++)
+
+#define rgb(HEX) (Color) {HEX / 0x10000, (HEX / 0x100) % 0x100, HEX % 0x100, 255}

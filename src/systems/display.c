@@ -4,17 +4,16 @@
 #include <utils.h>
 #include <stb_ds.h>
 
-Mode display_mode = MODE_TERMINAL;
+Mode display_mode = MODE_GAME;
 
 typedef struct {
     Vector2 *position;
-    Texture *texture;
+    Sprite *sprite;
 } Target;
 
 static Target *targets = NULL;
 
 static const int scale = 4;
-static const int cell_size = 16;
 
 Entity game_player = {0};
 
@@ -24,7 +23,7 @@ static void game_update()
         Vector2 pos_scaled = *target->position;
         pos_scaled.x *= scale * cell_size;
         pos_scaled.y *= scale * cell_size;
-        DrawTextureEx(*target->texture, pos_scaled, 0, scale, WHITE);
+        DrawTextureEx(target->sprite->texture, pos_scaled, 0, scale, WHITE);
     }
 
     if (game_player.position) {
@@ -63,10 +62,10 @@ void display_update()
 
 void display_register(const Entity *e)
 {
-    if (e->texture == NULL || e->position == NULL) return;
+    if (e->sprite == NULL || e->position == NULL) return;
     Target t = {
         .position = e->position,
-        .texture = e->texture,
+        .sprite = e->sprite,
     };
     arrput(targets, t);
 }
