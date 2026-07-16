@@ -1,12 +1,13 @@
 #include "animation.h"
-#include "components/animated.h"
 #include "raylib.h"
 #include "utils.h"
 #include <assert.h>
 #include <stb_ds.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct {
+    size_t id;
     Rotation *rotation;
     Sprite *sprite;
     AnimationState *animation_state;
@@ -23,7 +24,8 @@ void animation_update()
         ast->frame += GetFrameTime() * animation_fps;
         size_t after = ast->frame;
 
-        if (before != after || target->sprite->texture.id == 0) {
+        if (before != after || target->sprite->texture.id == 0 || !ast->synced) {
+            ast->synced = true;
             Animation animation = ast->pack[ast->current];
             assert(animation.count > 0);
             if (after >= animation.count) after %= animation.count;
@@ -32,10 +34,11 @@ void animation_update()
     }
 }
 
-void animation_register(const Entity *e)
+void animation_register(const Entity *e, size_t id)
 {
     if (e->rotation && e->sprite && e->animation_state) {
         Target t = {  // TODO try X-macro
+            .id = id,
             .rotation = e->rotation,
             .sprite = e->sprite,
             .animation_state = e->animation_state,

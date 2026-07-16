@@ -1,9 +1,8 @@
-#include "components/sprite.h"
 #include "systems/animation.h"
 #include <raylib.h>
 #include <stb_ds.h>
-#include <ecs.h>
-#include <systems/display.h>
+#include "ecs.h"
+#include "systems/display.h"
 
 // TODO:
 // - movement
@@ -22,6 +21,7 @@ int main()
         .animation_state = animated("assets/animations/humanoid"),
         .sprite = spritea(humanoid, NULL) + 1,  // TODO empty sprite
         .position = position(2, 3),
+        .rotation = rotation(ROTATION_DOWN),
     };
     UnloadImage(humanoid);
     ecs_add(&player);

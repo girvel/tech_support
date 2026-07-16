@@ -22,3 +22,5 @@
          VARNAME++)
 
 #define rgb(HEX) (Color) {HEX / 0x10000, (HEX / 0x100) % 0x100, HEX % 0x100, 255}
+
+char *tprintf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));

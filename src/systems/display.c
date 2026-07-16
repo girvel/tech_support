@@ -21,8 +21,8 @@ static void game_update()
 {
     foreach (target, targets) {
         Vector2 pos_scaled = *target->position;
-        pos_scaled.x *= scale * cell_size;
-        pos_scaled.y *= scale * cell_size;
+        pos_scaled.x *= scale * sprite_size;
+        pos_scaled.y *= scale * sprite_size;
         DrawTextureEx(target->sprite->texture, pos_scaled, 0, scale, WHITE);
     }
 
@@ -36,6 +36,17 @@ static void game_update()
         if (delta.x != 0 && delta.y != 0) {
             delta.x /= sqrt(2);
             delta.y /= sqrt(2);
+        }
+
+        if (delta.x != 0 || delta.y != 0) {
+            if (game_player.rotation && game_player.animation_state) {
+                Rotation rot =
+                    IsKeyDown(KEY_W) ? ROTATION_UP :
+                    IsKeyDown(KEY_S) ? ROTATION_DOWN :
+                    IsKeyDown(KEY_A) ? ROTATION_LEFT :
+                    ROTATION_RIGHT;
+                rotate(game_player.rotation, game_player.animation_state, rot);
+            }
         }
 
         game_player.position->x += delta.x;
@@ -60,7 +71,7 @@ void display_update()
     DrawFPS(100, 100);
 }
 
-void display_register(const Entity *e)
+void display_register(const Entity *e, size_t id)
 {
     if (e->sprite == NULL || e->position == NULL) return;
     Target t = {
