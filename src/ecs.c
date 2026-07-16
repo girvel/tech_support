@@ -1,4 +1,5 @@
 #include "ecs.h"
+#include "systems/animation.h"
 #include <systems/display.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -24,6 +25,7 @@ void ecs_add(const Entity *e)
 {
     arrput(all_entities, *e);
     display_register(e);
+    animation_register(e);
 }
 
 Entity *ecs_entities(size_t *size)

@@ -14,7 +14,7 @@ const Color anchor_colors[ANCHOR_N] = {
     [ANCHOR_RIGHT_POCKET] = rgb(0xef0000),
 };
 
-static inline void sprite_read(Sprite *result, Image *img)
+void sprite_read(Sprite *result, Image *img)
 {
     forarr (anchor, result->anchors) anchor->x = -1;
 
@@ -65,6 +65,7 @@ Sprite *spritea(Image img, size_t *n)
         Image crop = ImageCopy(img);
         ImageCrop(&crop, (Rectangle) {cell_size * i, 0, cell_size, cell_size});
         sprite_read(result + i, &crop);
+        UnloadImage(crop);
     }
 
     return result;

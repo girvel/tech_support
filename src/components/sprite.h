@@ -16,8 +16,11 @@ typedef struct {
     Vector2 anchors[ANCHOR_N];
 } Sprite;
 
+void sprite_read(Sprite *result, Image *img);
+
 // Read a sprite as an atlas
 Sprite *spritea(Image img, size_t *n);
+
 // Read a sprite from the image whole; mutates the image
 Sprite *spritei(Image *img);
 

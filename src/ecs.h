@@ -5,8 +5,9 @@
 
 typedef struct {
     Vector2 *position;
+    Rotation *rotation;
     Sprite *sprite;
-    Animated *animation;
+    AnimationState *animation_state;
 } Entity;
 
 Vector2 *position(float x, float y);

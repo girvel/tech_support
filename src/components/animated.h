@@ -1,5 +1,5 @@
 #pragma once
-#include "raylib.h"
+#include "components/sprite.h"
 #include <stddef.h>
 
 typedef enum {
@@ -7,22 +7,24 @@ typedef enum {
     ROTATION_LEFT,
     ROTATION_DOWN,
     ROTATION_RIGHT,
+    #define ROTATION_N 4
 } Rotation;
 
 typedef enum {
     ANIMATION_IDLE,
+    #define ANIMATION_N 1
 } AnimationKind;
 
 typedef struct {
-    Texture *frames;
+    Sprite (*frames)[ROTATION_N];  // ptr to Sprite[ROTATION_N]
     size_t count;
 } Animation;
 
 typedef struct {
-    Animation (*pack)[4];
+    Animation pack[ANIMATION_N];
     AnimationKind current, next;
-    int frame;
+    float frame;
     bool paused, looped;
-} Animated;
+} AnimationState;
 
-void animated(const char *path);
+AnimationState *animated(const char *path);
